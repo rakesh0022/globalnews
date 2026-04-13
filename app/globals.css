@@ -1,26 +1,343 @@
 @import "tailwindcss";
 
+/* ── Design tokens ─────────────────────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background:   #f8fafc;
+  --foreground:   #0f172a;
+  --surface:      #ffffff;
+  --surface-2:    #f1f5f9;
+  --border:       #e2e8f0;
+  --border-subtle:#f1f5f9;
+
+  /* Brand */
+  --accent:       #2563eb;
+  --accent-light: #dbeafe;
+
+  /* Glass */
+  --glass-bg:     rgba(255,255,255,0.72);
+  --glass-border: rgba(255,255,255,0.45);
+  --glass-shadow: 0 8px 32px rgba(15,23,42,0.08);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Dark mode via Tailwind .dark class (toggled by useTheme hook) */
+.dark {
+  --background:   #060b14;
+  --foreground:   #f1f5f9;
+  --surface:      #0d1526;
+  --surface-2:    #111d33;
+  --border:       #1e2d45;
+  --border-subtle:#162035;
+  --accent:       #3b82f6;
+  --accent-light: #1e3a5f;
+  --glass-bg:     rgba(13,21,38,0.75);
+  --glass-border: rgba(255,255,255,0.07);
+  --glass-shadow: 0 8px 32px rgba(0,0,0,0.45);
 }
 
+/* Also respect system preference when no .dark class is set yet */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not(.light) {
+    --background:   #060b14;
+    --foreground:   #f1f5f9;
+    --surface:      #0d1526;
+    --surface-2:    #111d33;
+    --border:       #1e2d45;
+    --border-subtle:#162035;
+    --accent:       #3b82f6;
+    --accent-light: #1e3a5f;
+    --glass-bg:     rgba(13,21,38,0.75);
+    --glass-border: rgba(255,255,255,0.07);
+    --glass-shadow: 0 8px 32px rgba(0,0,0,0.45);
   }
 }
+@theme inline {
+  --color-background:   var(--background);
+  --color-foreground:   var(--foreground);
+  --color-surface:      var(--surface);
+  --color-surface-2:    var(--surface-2);
+  --color-border:       var(--border);
+  --color-accent:       var(--accent);
+  --font-sans:          var(--font-geist-sans);
+}
+
+/* ── Base ──────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── Theme transitions ─────────────────────────────────────────────────────── */
+.theme-ready,
+.theme-ready * {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+
+/* ── Glassmorphism ─────────────────────────────────────────────────────────── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 24px rgba(15,23,42,0.06);
+}
+
+/* ── Category gradient accents ─────────────────────────────────────────────── */
+.cat-technology   { --cat-from: #2563eb; --cat-to: #7c3aed; }
+.cat-sports       { --cat-from: #16a34a; --cat-to: #0891b2; }
+.cat-business     { --cat-from: #d97706; --cat-to: #dc2626; }
+.cat-health       { --cat-from: #e11d48; --cat-to: #db2777; }
+.cat-science      { --cat-from: #7c3aed; --cat-to: #2563eb; }
+.cat-entertainment{ --cat-from: #db2777; --cat-to: #f97316; }
+.cat-all          { --cat-from: #475569; --cat-to: #334155; }
+
+.cat-gradient {
+  background: linear-gradient(135deg, var(--cat-from), var(--cat-to));
+}
+
+/* ── Animations ────────────────────────────────────────────────────────────── */
+@keyframes shimmer {
+  100% { transform: translateX(200%); }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-up   { animation: fade-up   0.4s ease both; }
+.animate-fade-in   { animation: fade-in   0.3s ease both; }
+.animate-scale-in  { animation: scale-in  0.35s ease both; }
+
+/* Staggered children */
+.stagger > *:nth-child(1) { animation-delay: 0ms;   }
+.stagger > *:nth-child(2) { animation-delay: 60ms;  }
+.stagger > *:nth-child(3) { animation-delay: 120ms; }
+.stagger > *:nth-child(4) { animation-delay: 180ms; }
+.stagger > *:nth-child(5) { animation-delay: 240ms; }
+.stagger > *:nth-child(6) { animation-delay: 300ms; }
+.stagger > *:nth-child(7) { animation-delay: 360ms; }
+.stagger > *:nth-child(8) { animation-delay: 420ms; }
+
+/* ── Card hover lift ───────────────────────────────────────────────────────── */
+.card-lift {
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.25s ease;
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(15,23,42,0.12), 0 4px 12px rgba(15,23,42,0.06);
+}
+.dark .card-lift:hover {
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────────────────────── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* ── Typography ────────────────────────────────────────────────────────────── */
+.text-balance { text-wrap: balance; }
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Gradient text ─────────────────────────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Noise texture overlay (subtle premium feel) ───────────────────────────── */
+.noise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ── Blog / Long-form prose ────────────────────────────────────────────────── */
+.blog-prose {
+  font-size: 1.125rem;
+  line-height: 1.85;
+  color: #1e293b;
+}
+.dark .blog-prose { color: #cbd5e1; }
+
+.blog-paragraph {
+  font-size: 1.125rem;
+  line-height: 1.85;
+  color: #334155;
+}
+.dark .blog-paragraph { color: #94a3b8; }
+
+.blog-prose > p:first-of-type::first-letter {
+  float: left;
+  font-size: 3.5rem;
+  line-height: 0.85;
+  font-weight: 800;
+  margin-right: 0.1em;
+  margin-top: 0.05em;
+  color: #2563eb;
+}
+.dark .blog-prose > p:first-of-type::first-letter { color: #60a5fa; }
+
+.blog-heading {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  margin-top: 2.5rem;
+  margin-bottom: 0.25rem;
+  line-height: 1.25;
+}
+.dark .blog-heading { color: #f1f5f9; }
+
+.blog-quote {
+  position: relative;
+  margin: 2rem 0;
+  padding: 1.5rem 1.75rem;
+  border-left: 4px solid #2563eb;
+  background: linear-gradient(135deg, #eff6ff, #f5f3ff);
+  border-radius: 0 1rem 1rem 0;
+}
+.dark .blog-quote {
+  background: linear-gradient(135deg, rgba(37,99,235,0.08), rgba(124,58,237,0.08));
+  border-left-color: #60a5fa;
+}
+.blog-quote p {
+  font-size: 1.2rem;
+  font-weight: 600;
+  font-style: italic;
+  line-height: 1.6;
+  color: #1e40af;
+  margin: 0;
+}
+.dark .blog-quote p { color: #93c5fd; }
+.blog-quote::before {
+  content: "\201C";
+  position: absolute;
+  top: -0.5rem;
+  left: 1rem;
+  font-size: 4rem;
+  line-height: 1;
+  color: #2563eb;
+  opacity: 0.25;
+  font-family: Georgia, serif;
+}
+
+/* ── Breaking news ticker ──────────────────────────────────────────────────── */
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-ticker {
+  animation: ticker 40s linear infinite;
+}
+.animate-ticker:hover {
+  animation-play-state: paused;
+}
+
+/* ── Mobile optimisations ──────────────────────────────────────────────────── */
+
+/* Safe area padding for bottom nav (notched phones) */
+.pb-safe  { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.mb-safe  { margin-bottom:  env(safe-area-inset-bottom, 0px); }
+
+/* Reserve space for the fixed bottom nav on mobile */
+@media (max-width: 639px) {
+  body { padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Disable hover lift on touch devices — prevents sticky hover state */
+@media (hover: none) {
+  .card-lift:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  /* Active press feedback instead */
+  .card-lift:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+}
+
+/* Prevent text size adjustment on orientation change */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* Improve tap highlight */
+* { -webkit-tap-highlight-color: transparent; }
+a, button { touch-action: manipulation; }
+
+/* Mobile typography scale — slightly larger base for readability */
+@media (max-width: 639px) {
+  .mobile-text-base { font-size: 1rem;    line-height: 1.6; }
+  .mobile-text-sm   { font-size: 0.9rem;  line-height: 1.55; }
+  .mobile-text-xs   { font-size: 0.8rem;  line-height: 1.5; }
+}
+
+/* Full-width cards on mobile — remove horizontal padding from card grids */
+@media (max-width: 639px) {
+  .mobile-full-bleed {
+    margin-left:  -1rem;
+    margin-right: -1rem;
+    border-radius: 0;
+    border-left:  none;
+    border-right: none;
+  }
+}
+
+/* Smooth momentum scrolling on iOS */
+.scroll-smooth-ios {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Swipe gesture visual feedback */
+@keyframes swipe-hint {
+  0%, 100% { transform: translateX(0); opacity: 0.4; }
+  50%       { transform: translateX(4px); opacity: 0.7; }
 }
